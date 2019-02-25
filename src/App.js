@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
 import './App.css';
+import axios from 'axios';
 
 const Card = (props) => {
     return (
         <div className={"App"}>
             <header className={"App-header"}>
-                <img className={"Image"} src={props.link}/>
+                <img className={"Image"} src={props.avatar_url}/>
                 <div className={"details"}>
                     <div className={"Name"}>{props.name}</div>
                     <div className={"Company"}>{props.company}</div>
@@ -21,27 +22,34 @@ const CardList = (props) => {
 
     return (
         <div className={"App"}>
-            {props.cardData.map(mappedData => <Card {...mappedData}/>)}
+            {props.cardData.map(mappedData => <Card key={mappedData.id} {...mappedData}/>)}
         </div>
     )
 };
 
 class Form extends Component {
-    getTheData = (event) => {
-        event.preventDefault()
-        console.log("Data  provided " + this.username.value)
+    state = {userName: ''};
 
+    handleSubmit = (event) => {
+        event.preventDefault()
+        console.log("Data  provided " + this.state.userName);
+        axios.get("https://api.github.com/users/" + this.state.userName)
+            .then(resp => {
+                this.props.onSubmit(resp.data)
+                this.setState({userName: ""})
+            })
     };
 
     render() {
         return (
             <div className={"App"}>
                 <header className={"App-header"}>
-                    <form onSubmit={this.getTheData}>
+                    <form onSubmit={this.handleSubmit}>
                         <label>Username</label>
                         <input
                             type={"text"}
-                            ref={(input) => this.username = input}
+                            value={this.state.userName}
+                            onChange={(event) => this.setState({userName: event.target.value})}
                             placeholder={"Enter the username"}
                             required={true}
                         />
@@ -58,29 +66,21 @@ class Form extends Component {
 
 class App extends Component {
     state = {
-        data: [
-            {
-                name: "Ashfaq",
-                link: "https://avatars0.githubusercontent.com/u/20638539?v=4",
-                company: "Ezerka"
-            },
-            {
-                name: "Vamshi",
-                link: "https://avatars3.githubusercontent.com/u/35305744?s=460&v=4",
-                company: "Ezerka"
-            },
-            {
-                name: "Vinay Reddy",
-                link: "https://i.ibb.co/0nszQbN/8e-YSs7c-L-400x400.jpg",
-                company: "Ezerka"
-            }
-        ]
+        data: []
+    };
+
+    addNewCard = (cardInfo) => {
+        console.log(cardInfo)
+        this.setState(previous => ({
+                data: previous.data.concat(cardInfo)
+            })
+        )
     };
 
     render() {
         return (
             <div>
-                <Form/>
+                <Form onSubmit={this.addNewCard}/>
                 <CardList cardData={this.state.data}/>
             </div>
 
