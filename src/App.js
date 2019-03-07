@@ -6,7 +6,7 @@ const Card = (props) => {
     return (
         <div className={"App"}>
             <header className={"App-header"}>
-                <img className={"Image"} src={props.avatar_url}/>
+                <img className={"Image"} src={props.avatar_url} alt={"avatar"}/>
                 <div className={"details"}>
                     <div className={"Name"}>{props.name}</div>
                     <div className={"Company"}>{props.company}</div>
@@ -26,18 +26,35 @@ const CardList = (props) => {
         </div>
     )
 };
+const additionalHeaders = (headers) => {
+    headers.HTTP2_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = '*'
+};
+
+const config = {
+    headers: {
+        "HTTP2_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN": '*'
+    },
+    data: {},
+};
 
 class Form extends Component {
     state = {userName: ''};
 
     handleSubmit = (event) => {
-        event.preventDefault()
+        event.preventDefault();
         console.log("Data  provided " + this.state.userName);
-        axios.get("https://api.github.com/users/" + this.state.userName)
+    
+        axios.head("https://cosmosvisas.com/ashfaq.json", config)
             .then(resp => {
-                this.props.onSubmit(resp.data)
-                this.setState({userName: ""})
-            })
+                additionalHeaders(resp.headers);
+                this.props.onSubmit(resp.data);
+                this.setState({
+                    userName: ""
+                });
+                console.log("fetched data: " + resp.data)
+            }).catch(err => {
+            console.log("Error: " + err)
+        })
     };
 
     render() {
@@ -48,7 +65,7 @@ class Form extends Component {
                         <label>Username</label>
                         <input
                             type={"text"}
-                            value={this.state.userName}
+                            value={this.state.userName}//Controlled Component
                             onChange={(event) => this.setState({userName: event.target.value})}
                             placeholder={"Enter the username"}
                             required={true}
@@ -70,7 +87,7 @@ class App extends Component {
     };
 
     addNewCard = (cardInfo) => {
-        console.log(cardInfo)
+        console.log(cardInfo);
         this.setState(previous => ({
                 data: previous.data.concat(cardInfo)
             })
